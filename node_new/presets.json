@@ -1,0 +1,29 @@
+{
+  "presets": [
+    {
+      "name": "musinsa",
+      "width": 1200,
+      "height": 1440
+    },
+    {
+      "name": "lf",
+      "width": 1500,
+      "height": 1950
+    },
+    {
+      "name": "si",
+      "width": 800,
+      "height": 1200
+    },
+    {
+      "name": "ssf",
+      "width": 750,
+      "height": 1000
+    },
+    {
+      "name": "test",
+      "width": 2000,
+      "height": 2000
+    }
+  ]
+}

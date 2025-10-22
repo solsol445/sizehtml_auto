@@ -1,0 +1,3261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Resizer - Web Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #4facfe;
+            background: #f0f8ff;
+        }
+
+        .upload-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        input[type="number"], input[type="file"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-small {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-small:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .progress {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .gallery-section {
+            margin-top: 40px;
+        }
+
+        .gallery-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .folders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .folder-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+            transition: transform 0.3s ease;
+        }
+
+        .folder-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .folder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .folder-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .folder-count {
+            background: #4facfe;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+        }
+
+        .image-item {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .image-item:hover {
+            transform: scale(1.05);
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #f8f9fa;
+        }
+
+        .no-images {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #6c757d;
+            padding: 20px;
+        }
+
+        .refresh-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #218838;
+        }
+
+        /* External Folder Section */
+        .external-folder-section {
+            margin-bottom: 40px;
+        }
+
+        .external-folder-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .folder-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .folder-input-group input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .folder-input-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        /* Preset Styles */
+        .preset-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .preset-main-btn {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .preset-main-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .preset-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        /* Gallery View Styles */
+        .gallery-view {
+            display: none;
+        }
+
+        .gallery-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+        }
+
+        .gallery-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-item {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            background: #f8f9fa;
+        }
+
+        .gallery-item-info {
+            padding: 15px;
+        }
+
+        .gallery-item-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            word-break: break-all;
+        }
+
+        .gallery-item-size {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+        }
+
+        .modal-content {
+            position: relative;
+            margin: auto;
+            padding: 20px;
+            width: 90vw;
+            height: 90vh;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .modal-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-nav:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .modal-nav-left {
+            left: 20px;
+        }
+
+        .modal-nav-right {
+            right: 20px;
+        }
+
+        /* Delete Modal Styles */
+        .delete-modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+            text-align: center;
+            z-index: 1001;
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .delete-modal-content h3 {
+            margin: 0 0 12px 0;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .delete-modal-content p {
+            margin: 0 0 20px 0;
+            color: #5a6c7d;
+            font-size: 14px;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        .delete-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-cancel {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            color: #6c757d;
+            border: 2px solid #dee2e6;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 80px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-cancel:hover {
+            background: linear-gradient(145deg, #e9ecef, #dee2e6);
+            border-color: #adb5bd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .btn-cancel:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-danger {
+            background: linear-gradient(145deg, #dc3545, #c82333);
+            color: white;
+            border: 2px solid #dc3545;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 80px;
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(145deg, #c82333, #a71e2a);
+            border-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-danger:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Copy Modal Styles */
+        .copy-modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+            text-align: center;
+            z-index: 1001;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .copy-modal-content h3 {
+            margin: 0 0 20px 0;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .copy-form {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .copy-form .form-group {
+            margin-bottom: 15px;
+        }
+
+        .copy-form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .copy-form input,
+        .copy-form select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .copy-form input:focus,
+        .copy-form select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .preset-options {
+            display: flex;
+            gap: 20px;
+            margin-top: 5px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-right: 8px;
+            width: auto;
+            padding: 0;
+        }
+
+        .radio-option span {
+            user-select: none;
+        }
+
+        .copy-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #007bff, #0056b3);
+            color: white;
+            border: 2px solid #007bff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 100px;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(145deg, #0056b3, #004085);
+            border-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 123, 255, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+        }
+
+        .copy-btn {
+            background: linear-gradient(145deg, #28a745, #1e7e34);
+            color: white;
+            border: 2px solid #28a745;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: linear-gradient(145deg, #1e7e34, #155724);
+            border-color: #1e7e34;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .delete-copy-btn {
+            background: linear-gradient(145deg, #dc3545, #c82333);
+            color: white;
+            border: 2px solid #dc3545;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .delete-copy-btn:hover {
+            background: linear-gradient(145deg, #c82333, #bd2130);
+            border-color: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ffeeba;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(145deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(145deg, #c82333, #bd2130);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.6);
+        }
+
+        .pattern-settings-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .pattern-settings-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .pattern-checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pattern-checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            user-select: none;
+        }
+
+        .pattern-checkbox-item:hover {
+            background: #e9ecef;
+        }
+
+        .pattern-checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .pattern-checkbox-item span {
+            font-size: 14px;
+            color: #495057;
+            font-family: 'Courier New', monospace;
+        }
+
+        .pattern-checkbox-item.html-pattern.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f1f3f5;
+        }
+
+        .pattern-checkbox-item.html-pattern.disabled input[type="checkbox"] {
+            cursor: not-allowed;
+        }
+
+        /* Progress Modal Styles */
+        .progress-modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            z-index: 1001;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .progress-modal-content h3 {
+            margin: 0 0 20px 0;
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .progress-info {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .progress-status {
+            font-size: 16px;
+            color: #495057;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .progress-time {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .progress-details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .progress-detail-item {
+            text-align: center;
+        }
+
+        .progress-detail-label {
+            font-size: 12px;
+            color: #868e96;
+            margin-bottom: 5px;
+        }
+
+        .progress-detail-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #495057;
+        }
+
+        .progress-complete-icon {
+            font-size: 60px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .progress-complete-message {
+            text-align: center;
+            font-size: 18px;
+            color: #28a745;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .progress-error-list {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .progress-close-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(145deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .progress-close-btn:hover {
+            background: linear-gradient(145deg, #0056b3, #004085);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+        }
+
+        /* Gallery Actions */
+        .gallery-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nas-btn {
+            background: linear-gradient(145deg, #17a2b8, #138496);
+            color: white;
+            border: 2px solid #17a2b8;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nas-btn:hover {
+            background: linear-gradient(145deg, #138496, #117a8b);
+            border-color: #138496;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+        }
+
+        .sync-btn {
+            background: linear-gradient(145deg, #6f42c1, #5a32a3);
+            color: white;
+            border: 2px solid #6f42c1;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .sync-btn:hover {
+            background: linear-gradient(145deg, #5a32a3, #4e2a8e);
+            border-color: #5a32a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(111, 66, 193, 0.3);
+        }
+
+        /* NAS Modal Styles */
+        .nas-modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+            text-align: center;
+            z-index: 1001;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .nas-modal-content h3 {
+            margin: 0 0 20px 0;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .nas-form {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .nas-form .form-group {
+            margin-bottom: 15px;
+        }
+
+        .nas-form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .nas-form input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .nas-form input:focus {
+            outline: none;
+            border-color: #17a2b8;
+            box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+        }
+
+        .nas-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        /* Delete buttons for folders and images */
+        .delete-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: all 0.2s ease;
+        }
+
+        .delete-btn:hover {
+            background: rgba(220, 53, 69, 1);
+            transform: scale(1.1);
+        }
+
+        .folder-card {
+            position: relative;
+        }
+
+        .gallery-item {
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #666;
+            font-size: 24px;
+            font-weight: normal;
+            cursor: pointer;
+            z-index: 1001;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .modal-close:hover {
+            color: #333;
+            background: rgba(255, 255, 255, 1);
+            border-color: #ddd;
+            transform: scale(1.1);
+        }
+
+        .modal-close:active {
+            transform: scale(0.95);
+        }
+
+        .modal-info {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 80%;
+            z-index: 1002;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .folders-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .gallery-item img {
+                height: 150px;
+                object-fit: contain;
+            }
+
+            .modal-content {
+                width: 95vw;
+                height: 95vh;
+                padding: 10px;
+            }
+
+            .modal-close {
+                right: 15px;
+                font-size: 35px;
+            }
+
+            .modal-info {
+                font-size: 12px;
+                padding: 8px 12px;
+                max-width: 90%;
+            }
+            
+            .modal-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 1.5rem;
+            }
+            
+            .modal-nav-left {
+                left: 10px;
+            }
+            
+            .modal-nav-right {
+                right: 10px;
+            }
+            
+            .delete-modal-content {
+                width: 280px;
+                padding: 20px;
+                margin: 20px;
+            }
+            
+            .delete-modal-content h3 {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+            
+            .delete-modal-content p {
+                font-size: 13px;
+                margin-bottom: 18px;
+            }
+            
+            .delete-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn-cancel, .btn-danger {
+                padding: 12px 20px;
+                font-size: 13px;
+            }
+            
+            .btn-cancel, .btn-danger {
+                width: 100%;
+                margin: 2px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ Image Resizer</h1>
+            <p>High-quality image resizing with minimal loss</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Preset Section -->
+            <div class="preset-container">
+                <button class="preset-main-btn" onclick="openPresetWindow()">
+                    ⚙️ Size Presets
+                </button>
+                <div class="preset-buttons" id="presetButtons">
+                    <!-- Preset buttons will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h2>📤 Upload & Resize Images</h2>
+                
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="width">Width (px)</label>
+                            <input type="number" id="width" name="width" required min="1" placeholder="ex) 750">
+                        </div>
+                        <div class="form-group">
+                            <label for="height">Height (px)</label>
+                            <input type="number" id="height" name="height" required min="1" placeholder="ex) 1000">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="images">Select Images (JPG/JPEG)</label>
+                        <input type="file" id="images" name="images" multiple accept="image/jpeg,image/jpg" required>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="submitBtn">
+                        📤 Process Images
+                    </button>
+                </form>
+
+                <div class="progress" id="progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p id="progressText">Processing...</p>
+                </div>
+
+                <div class="result" id="result"></div>
+            </div>
+
+            <!-- External Folder Browser -->
+            <div class="external-folder-section">
+                <h2>🔗 Browse External Folder</h2>
+                <div class="folder-input-group">
+                    <input type="text" id="externalPath" placeholder="경로를 입력하거나 폴더를 선택하세요">
+                    <button class="btn" onclick="browseExternalFolder()" style="width: auto; padding: 10px 20px;">📂 Browse</button>
+                    <button class="btn-small" onclick="selectLocalFolder()" style="width: auto; padding: 10px 15px; background: #6c757d;">📁 Select Folder</button>
+                    <input type="file" id="folderSelector" webkitdirectory directory multiple style="display: none;" onchange="handleFolderSelect(event)">
+                </div>
+                <div class="folders-grid" id="externalFoldersGrid" style="display: none;">
+                    <!-- External folders will be loaded here -->
+                </div>
+            </div>
+
+
+            <!-- Gallery View -->
+            <div class="gallery-view" id="galleryView">
+                <div class="gallery-header">
+                    <button class="back-btn" onclick="showFoldersView()">← Back to Folders</button>
+                    <div class="gallery-title" id="galleryTitle">Gallery</div>
+                    <div class="gallery-actions">
+                        <button class="copy-btn" onclick="openCopyModal()">📁 1px Copy</button>
+                        <button class="delete-copy-btn" onclick="openDeleteCopyModal()">🗑️ 동기화 서버 삭제</button>
+                        <button class="nas-btn" onclick="openNasModal()">📡 NAS 전송</button>
+                        <button class="sync-btn" onclick="openSyncModal()">🔄 이미지 동기화</button>
+                    </div>
+                </div>
+                <div class="gallery-grid" id="galleryGrid">
+                    <!-- Gallery items will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="modal">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <div class="modal-content">
+            <button class="modal-nav modal-nav-left" onclick="showPreviousImage()" title="Previous Image (←)">‹</button>
+            <img id="modalImage" src="" alt="">
+            <button class="modal-nav modal-nav-right" onclick="showNextImage()" title="Next Image (→)">›</button>
+            <div class="modal-info" id="modalInfo"></div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="delete-modal-content">
+            <h3>🗑️ 삭제 확인</h3>
+            <p id="deleteMessage">정말로 삭제하시겠습니까?</p>
+            <div class="delete-buttons">
+                <button class="btn-cancel" onclick="closeDeleteModal()">취소</button>
+                <button class="btn-danger" onclick="confirmDelete()">삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1px Copy Modal -->
+    <div id="copyModal" class="modal">
+        <div class="copy-modal-content" style="max-width: 450px;">
+            <h3>📁 1px 이미지 복사</h3>
+            <div class="copy-form">
+                <div class="form-group">
+                    <label for="copyPath">경로</label>
+                    <input type="text" id="copyPath" placeholder="경로를 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="copySeason">시즌</label>
+                    <input type="text" id="copySeason" placeholder="예: 25FW" maxlength="10">
+                </div>
+                <div class="form-group">
+                    <label for="copyPreset">프리셋 선택</label>
+                    <select id="copyPreset">
+                        <option value="">프리셋을 선택하세요</option>
+                    </select>
+                </div>
+                
+                <!-- 엑셀 필터링 옵션 -->
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="useExcelFilter" style="width: auto; margin-right: 8px;" onchange="toggleExcelFilterFields()">
+                        <span>📊 엑셀로 필터링하기</span>
+                    </label>
+                </div>
+                
+                <div id="excelFilterFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="copyExcelFile">
+                            엑셀 파일 (.xlsx, .xls)
+                            <button type="button" onclick="downloadSampleExcel()" style="margin-left: 10px; padding: 4px 10px; font-size: 12px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                📥 샘플
+                            </button>
+                        </label>
+                        <input type="file" id="copyExcelFile" accept=".xlsx,.xls,.ods">
+                    </div>
+                    <div style="background: #fff3cd; padding: 10px; border-radius: 6px; border-left: 4px solid #ffc107; margin-top: 10px;">
+                        <small style="color: #856404; font-size: 12px; line-height: 1.5;">
+                            📌 엑셀 "imgs" 열 기준 → 시즌-데이터_패턴 검색<br>
+                            예: SF177E-55NXFJ → 25FW-SF177E-55N-XFJ_promotion_01.jpg
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label style="display: flex; align-items: center; cursor: pointer; user-select: none;">
+                            <input type="checkbox" id="copyHtmlImages" style="width: auto; margin-right: 8px;" onchange="toggleHtmlPatterns()">
+                            <span>HTML 이미지 포함</span>
+                        </label>
+                        <button type="button" class="pattern-settings-btn" onclick="openPatternSettings()" title="패턴 설정">⚙️</button>
+                    </div>
+                </div>
+                <div style="background: #f0f8ff; padding: 12px; border-radius: 6px; border-left: 4px solid #007bff; margin-top: 10px;">
+                    <small style="color: #0056b3; font-size: 13px; line-height: 1.6;">
+                        <strong>ℹ️ 자동 복사:</strong> 시즌에 해당하는 promotion, fit, illust 등 9개 패턴 이미지를 찾아서 프리셋명을 붙여 복사합니다.<br>
+                        <strong>📝 예시:</strong> <code>25FW-..._promotion_01.jpg</code> → <code>25FW-..._promotion_01_lf.jpg</code>
+                    </small>
+                </div>
+            </div>
+            <div class="copy-buttons">
+                <button class="btn-cancel" onclick="closeCopyModal()">취소</button>
+                <button class="btn-primary" onclick="startCopy()">복사 시작</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAS 전송 Modal -->
+    <div id="nasModal" class="modal">
+        <div class="nas-modal-content">
+            <h3>📡 NAS 이미지 전송</h3>
+            <div class="nas-form">
+                <div class="form-group">
+                    <label for="nasBasePath">기본 경로</label>
+                    <input type="text" id="nasBasePath" placeholder="NAS 기본 경로를 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="nasSeason">시즌</label>
+                    <input type="text" id="nasSeason" placeholder="예: 25FW" maxlength="10">
+                </div>
+            </div>
+            <div class="nas-buttons">
+                <button class="btn-cancel" onclick="closeNasModal()">취소</button>
+                <button class="btn-primary" onclick="startNasTransfer()">전송 시작</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 동기화 서버 이미지 삭제 Modal -->
+    <div id="deleteCopyModal" class="modal">
+        <div class="copy-modal-content" style="max-width: 500px;">
+            <h3>🗑️ 동기화 서버 이미지 삭제</h3>
+            <div class="copy-form">
+                <div class="form-group">
+                    <label for="deletePath">경로</label>
+                    <input type="text" id="deletePath" placeholder="경로를 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="deleteSeason">시즌</label>
+                    <input type="text" id="deleteSeason" placeholder="예: 25SS" maxlength="10">
+                </div>
+                <div class="form-group">
+                    <label for="deletePreset">프리셋 선택</label>
+                    <select id="deletePreset">
+                        <option value="">삭제할 프리셋을 선택하세요</option>
+                    </select>
+                </div>
+                
+                <!-- 삭제할 이미지 타입 선택 -->
+                <div class="form-group">
+                    <label style="font-weight: 600; margin-bottom: 10px; display: block;">삭제할 이미지 타입 선택</label>
+                    <div style="border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; background: #f8f9fa;">
+                        <label style="display: flex; align-items: center; cursor: pointer; user-select: none; margin-bottom: 8px;">
+                            <input type="checkbox" id="deletePatternImages" checked style="width: auto; margin-right: 8px;">
+                            <span>📁 1px Copy로 생성된 패턴 이미지 (예: promotion_01_musinsa.jpg)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; user-select: none; margin-bottom: 8px;">
+                            <input type="checkbox" id="deleteSyncImages" checked style="width: auto; margin-right: 8px;">
+                            <span>🔄 동기화로 생성된 이미지 (예: ABC123_musinsa.jpg)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: not-allowed; user-select: none; opacity: 0.5;">
+                            <input type="checkbox" id="deleteOriginalImages" disabled style="width: auto; margin-right: 8px;">
+                            <span>📷 원본 이미지 (예: promotion_01.jpg) - <strong style="color: #dc3545;">삭제 금지</strong></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="warning-message">
+                    ⚠️ 선택한 이미지 타입들이 모두 삭제됩니다!
+                </div>
+            </div>
+            <div class="copy-buttons">
+                <button class="btn-cancel" onclick="closeDeleteCopyModal()">취소</button>
+                <button class="btn-danger" onclick="startDeleteCopy()">삭제 시작</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 패턴 설정 Modal -->
+    <div id="patternSettingsModal" class="modal">
+        <div class="copy-modal-content" style="max-width: 500px;">
+            <h3>⚙️ 복사 패턴 설정</h3>
+            <div class="copy-form">
+                <div style="margin-bottom: 15px;">
+                    <small style="color: #666; font-size: 13px;">
+                        체크된 패턴만 복사됩니다. HTML 패턴은 메인 체크박스가 해제되어 있으면 비활성화됩니다.
+                    </small>
+                </div>
+                
+                <div style="border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #333;">일반 패턴</h4>
+                    <div class="pattern-checkbox-group">
+                        <label class="pattern-checkbox-item">
+                            <input type="checkbox" id="pattern_promotion_00" value="promotion_00" checked>
+                            <span>promotion_00</span>
+                        </label>
+                        <label class="pattern-checkbox-item">
+                            <input type="checkbox" id="pattern_promotion_01" value="promotion_01" checked>
+                            <span>promotion_01</span>
+                        </label>
+                        <label class="pattern-checkbox-item">
+                            <input type="checkbox" id="pattern_promotion_02" value="promotion_02" checked>
+                            <span>promotion_02</span>
+                        </label>
+                        <label class="pattern-checkbox-item">
+                            <input type="checkbox" id="pattern_fit_01" value="fit_01" checked>
+                            <span>fit_01</span>
+                        </label>
+                        <label class="pattern-checkbox-item">
+                            <input type="checkbox" id="pattern_illust_01" value="illust_01" checked>
+                            <span>illust_01</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #333;">HTML 패턴</h4>
+                    <div class="pattern-checkbox-group">
+                        <label class="pattern-checkbox-item html-pattern">
+                            <input type="checkbox" id="pattern_desc_info_02" value="desc_info_02" checked>
+                            <span>desc_info_02</span>
+                        </label>
+                        <label class="pattern-checkbox-item html-pattern">
+                            <input type="checkbox" id="pattern_title_info_01" value="title_info_01" checked>
+                            <span>title_info_01</span>
+                        </label>
+                        <label class="pattern-checkbox-item html-pattern">
+                            <input type="checkbox" id="pattern_size_info_04" value="size_info_04" checked>
+                            <span>size_info_04</span>
+                        </label>
+                        <label class="pattern-checkbox-item html-pattern">
+                            <input type="checkbox" id="pattern_spec_info_03" value="spec_info_03" checked>
+                            <span>spec_info_03</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="copy-buttons">
+                <button class="btn-cancel" onclick="closePatternSettings()">취소</button>
+                <button class="btn-primary" onclick="savePatternSettings()">확인</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Progress Modal -->
+    <div id="progressModal" class="modal">
+        <div class="progress-modal-content">
+            <div id="progressContent">
+                <h3 id="progressTitle">⏳ 작업 진행 중...</h3>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;">0%</div>
+                </div>
+                <div class="progress-info">
+                    <div class="progress-status" id="progressStatus">준비 중...</div>
+                    <div class="progress-time" id="progressTime">예상 남은 시간: 계산 중...</div>
+                </div>
+                <div class="progress-details">
+                    <div class="progress-detail-item">
+                        <div class="progress-detail-label">성공</div>
+                        <div class="progress-detail-value" id="progressProcessed">0</div>
+                    </div>
+                    <div class="progress-detail-item">
+                        <div class="progress-detail-label">전체</div>
+                        <div class="progress-detail-value" id="progressTotal">0</div>
+                    </div>
+                    <div class="progress-detail-item">
+                        <div class="progress-detail-label">오류</div>
+                        <div class="progress-detail-value" id="progressErrors" style="color: #dc3545;">0</div>
+                    </div>
+                </div>
+            </div>
+            <div id="progressCompleteContent" style="display: none;">
+                <div class="progress-complete-icon">✅</div>
+                <div class="progress-complete-message" id="completeMessage">작업 완료!</div>
+                <div class="progress-details">
+                    <div class="progress-detail-item">
+                        <div class="progress-detail-label">성공</div>
+                        <div class="progress-detail-value" id="completedCount" style="color: #28a745;">0</div>
+                    </div>
+                    <div class="progress-detail-item">
+                        <div class="progress-detail-label">전체</div>
+                        <div class="progress-detail-value" id="completedTotal">0</div>
+                    </div>
+                    <div class="progress-detail-item">
+                        <div class="progress-detail-label">오류</div>
+                        <div class="progress-detail-value" id="completedErrors" style="color: #dc3545;">0</div>
+                    </div>
+                </div>
+                <div id="errorListContainer"></div>
+                <button class="progress-close-btn" onclick="closeProgressModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 이미지 동기화 Modal -->
+    <div id="syncModal" class="modal">
+        <div class="copy-modal-content">
+            <h3>🔄 이미지 동기화 (엑셀 기반)</h3>
+            <div class="copy-form">
+                <div class="form-group">
+                    <label for="syncPath">이미지 폴더 경로</label>
+                    <input type="text" id="syncPath" placeholder="예: C:\images">
+                </div>
+                <div class="form-group">
+                    <label for="syncSeason">시즌</label>
+                    <input type="text" id="syncSeason" placeholder="예: 25FW" maxlength="10">
+                </div>
+                
+                <!-- 전체 동기화 옵션 -->
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="syncAllImages" style="width: auto; margin-right: 8px;" onchange="toggleSyncAllFields()">
+                        <span>🌐 전체 동기화 (1px 패턴 제외한 모든 이미지)</span>
+                    </label>
+                </div>
+                
+                <div id="syncExcelFields">
+                    <div class="form-group">
+                        <label for="syncExcelFile">
+                            엑셀 파일 (.xlsx, .xls)
+                            <button type="button" onclick="downloadSampleExcel()" style="margin-left: 10px; padding: 4px 10px; font-size: 12px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                📥 샘플 다운로드
+                            </button>
+                        </label>
+                        <input type="file" id="syncExcelFile" accept=".xlsx,.xls,.ods">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="syncPreset">프리셋 선택</label>
+                    <select id="syncPreset">
+                        <option value="">프리셋을 선택하세요</option>
+                    </select>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background: #e8f5e9; border-radius: 6px; border: 1px solid #81c784;">
+                    <small style="color: #2e7d32; font-size: 13px; line-height: 1.5;">
+                        📌 <strong>동작 방식:</strong><br>
+                        • 경로: <code>이미지 폴더/시즌</code>에서 검색<br>
+                        • <strong id="syncModeText">엑셀의 "imgs" 열 기준 (예: SF177E-55NXFJ → SF177E-55N_XFJ)</strong><br>
+                        • 선택한 프리셋 크기로 리사이징하여 복사<br>
+                        • <strong>transparent 폴더는 항상 제외됩니다</strong>
+                    </small>
+                </div>
+            </div>
+            <div class="copy-buttons">
+                <button class="btn-cancel" onclick="closeSyncModal()">취소</button>
+                <button class="btn-primary" onclick="startSync()">동기화 시작</button>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Form submission
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+            const images = document.getElementById('images').files;
+            const basePath = document.getElementById('externalPath').value;
+            
+            if (!width || !height) {
+                showResult('Please enter valid width and height values', 'error');
+                return;
+            }
+            
+            if (images.length === 0) {
+                showResult('Please select at least one image', 'error');
+                return;
+            }
+            
+            if (!basePath || !basePath.trim()) {
+                showResult('Please enter a base path in Browse External Folder', 'error');
+                return;
+            }
+            
+            // Add files to form data
+            for (let i = 0; i < images.length; i++) {
+                formData.append('images', images[i]);
+            }
+            formData.append('width', width);
+            formData.append('height', height);
+            formData.append('folderName', currentPresetName);
+            formData.append('basePath', basePath);
+            console.log('Sending to server:', { width, height, folderName: currentPresetName, basePath });
+            
+            // Show progress
+            showProgress(true);
+            document.getElementById('submitBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult(`✅ ${result.message}`, 'success');
+                    
+                    // 이미지 처리 완료 후 외부 폴더 새로고침
+                    setTimeout(() => {
+                        const externalPath = document.getElementById('externalPath').value;
+                        if (externalPath && externalPath.trim() && !externalPath.startsWith('Local:')) {
+                            browseExternalFolder();
+                        }
+                    }, 1000);
+                } else {
+                    showResult(`❌ ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                showProgress(false);
+                document.getElementById('submitBtn').disabled = false;
+            }
+        });
+        
+        function showProgress(show) {
+            const progress = document.getElementById('progress');
+            progress.style.display = show ? 'block' : 'none';
+        }
+        
+        function showResult(message, type) {
+            const result = document.getElementById('result');
+            result.textContent = message;
+            result.className = `result ${type}`;
+            result.style.display = 'block';
+            
+            setTimeout(() => {
+                result.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Load folders and images
+        
+        function showFoldersView() {
+            // Hide gallery view, show external folder section
+            document.getElementById('galleryView').style.display = 'none';
+            document.querySelector('.external-folder-section').style.display = 'block';
+        }
+        
+        function openImageModal(url, name, size) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalInfo = document.getElementById('modalInfo');
+            
+            modalImage.src = url;
+            modalImage.alt = name;
+            modalInfo.innerHTML = `
+                <strong>${name}</strong><br>
+                Size: ${formatFileSize(size)}
+            `;
+            
+            modal.style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+        
+        // ESC 키로 모달 닫기 (기존 키보드 이벤트 핸들러와 통합됨)
+        
+        // 모달 외부 클릭 시 닫기
+        document.getElementById('imageModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeModal();
+            }
+        });
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        
+        // Preset functions
+        function openPresetWindow() {
+            const presetWindow = window.open(
+                'preset.html',
+                'presetWindow',
+                'width=600,height=700,scrollbars=yes,resizable=yes'
+            );
+        }
+        
+        let currentPresetName = '';
+        
+        function applyPreset(width, height, presetName) {
+            document.getElementById('width').value = width;
+            document.getElementById('height').value = height;
+            currentPresetName = presetName || '';
+            console.log('Applied preset:', { width, height, presetName, currentPresetName });
+        }
+        
+        // Preset management functions
+        let presets = [];
+        
+        // 서버에서 프리셋 로드
+        async function loadPresetsFromServer() {
+            try {
+                const response = await fetch('/api/presets');
+                const data = await response.json();
+                
+                if (data.success) {
+                    presets = data.presets;
+                    loadPresets();
+                } else {
+                    console.error('Error loading presets:', data.message);
+                    presets = [];
+                }
+            } catch (error) {
+                console.error('Error loading presets:', error);
+                presets = [];
+            }
+        }
+        
+        async function savePreset() {
+            const width = document.getElementById('presetWidth').value;
+            const height = document.getElementById('presetHeight').value;
+            const name = document.getElementById('presetName').value;
+            
+            if (!width || !height || !name) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/presets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name.trim(),
+                        width: parseInt(width),
+                        height: parseInt(height)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    presets = data.presets;
+                    
+                    // Clear form
+                    document.getElementById('presetWidth').value = '';
+                    document.getElementById('presetHeight').value = '';
+                    document.getElementById('presetName').value = '';
+                    
+                    loadPresets();
+                    alert('Preset saved successfully!');
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error saving preset:', error);
+                alert('Error saving preset');
+            }
+        }
+        
+        function loadPresets() {
+            const container = document.getElementById('presetButtons');
+            if (presets.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = presets.map(preset => `
+                <button class="preset-btn" onclick="applyPreset(${preset.width}, ${preset.height}, '${preset.name}')">
+                    ${preset.name} (${preset.width}x${preset.height})
+                </button>
+            `).join('');
+        }
+        
+        async function deletePreset(name, event) {
+            event.stopPropagation();
+            if (confirm(`Delete preset "${name}"?`)) {
+                try {
+                    const response = await fetch(`/api/presets/${encodeURIComponent(name)}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        presets = data.presets;
+                        loadPresets();
+                        alert('Preset deleted successfully!');
+                    } else {
+                        alert(`Error: ${data.message}`);
+                    }
+                } catch (error) {
+                    console.error('Error deleting preset:', error);
+                    alert('Error deleting preset');
+                }
+            }
+        }
+        
+        // Listen for messages from preset window
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'applyPreset') {
+                applyPreset(event.data.width, event.data.height, event.data.presetName);
+            }
+            if (event.data.type === 'presetSaved') {
+                // localStorage 다시 읽어서 프리셋 새로고침
+                presets = JSON.parse(localStorage.getItem('imageResizerPresets') || '[]');
+                loadPresets();
+                
+                // 외부 폴더 새로고침
+                setTimeout(() => {
+                    const externalPath = document.getElementById('externalPath').value;
+                    if (externalPath && externalPath.trim() && !externalPath.startsWith('Local:')) {
+                        browseExternalFolder();
+                    }
+                }, 500);
+            }
+        });
+        
+        // External folder browser
+        async function browseExternalFolder() {
+            const externalPath = document.getElementById('externalPath').value;
+            
+            if (!externalPath || !externalPath.trim()) {
+                alert('Please enter a folder path');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/browse-external', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ path: externalPath })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    alert(`Error: ${data.message}`);
+                    return;
+                }
+                
+                // 성공 시 마지막 경로 저장
+                localStorage.setItem('lastExternalPath', externalPath);
+                
+                displayExternalFolders(data.folders);
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+        
+        // 마지막 사용 경로 불러오기
+        function loadLastExternalPath() {
+            const lastPath = localStorage.getItem('lastExternalPath');
+            if (lastPath) {
+                document.getElementById('externalPath').value = lastPath;
+                // 마지막 경로가 있으면 자동으로 브라우징
+                setTimeout(() => {
+                    browseExternalFolder();
+                }, 100);
+            } else {
+                // 기본값 설정
+                document.getElementById('externalPath').value = 'C:\\Users\\PC\\Desktop\\new_work_busy\\img_resize\\node\\img_out';
+                // 기본 경로로 자동 브라우징
+                setTimeout(() => {
+                    browseExternalFolder();
+                }, 100);
+            }
+        }
+        
+        // Local folder selector
+        function selectLocalFolder() {
+            document.getElementById('folderSelector').click();
+        }
+        
+        function handleFolderSelect(event) {
+            const files = event.target.files;
+            
+            if (files.length === 0) {
+                return;
+            }
+            
+            // 첫 번째 파일의 경로에서 폴더 경로 추출
+            const firstFile = files[0];
+            const pathParts = firstFile.webkitRelativePath.split('/');
+            const folderName = pathParts[0];
+            
+            // 이미지 파일들을 폴더별로 그룹화
+            const folderMap = new Map();
+            
+            for (const file of files) {
+                // 이미지 파일만 필터링
+                if (/\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)) {
+                    const pathParts = file.webkitRelativePath.split('/');
+                    
+                    // 최상위 폴더의 직계 하위 폴더만 사용
+                    if (pathParts.length >= 2) {
+                        const subFolder = pathParts[1];
+                        
+                        if (!folderMap.has(subFolder)) {
+                            folderMap.set(subFolder, []);
+                        }
+                        
+                        folderMap.get(subFolder).push({
+                            name: file.name,
+                            file: file,
+                            size: file.size
+                        });
+                    }
+                }
+            }
+            
+            // 폴더 데이터를 배열로 변환
+            const folders = [];
+            folderMap.forEach((images, folderName) => {
+                folders.push({
+                    name: folderName,
+                    path: folderName,
+                    imageCount: images.length,
+                    images: images
+                });
+            });
+            
+            if (folders.length === 0) {
+                alert('No image folders found in the selected folder');
+                return;
+            }
+            
+            // 경로 입력 필드 업데이트
+            const localPath = `Local: ${folderName}`;
+            document.getElementById('externalPath').value = localPath;
+            
+            // 마지막 경로 저장
+            localStorage.setItem('lastExternalPath', localPath);
+            
+            // 로컬 폴더 표시
+            displayLocalFolders(folders);
+        }
+        
+        function displayLocalFolders(folders) {
+            const container = document.getElementById('externalFoldersGrid');
+            
+            container.style.display = 'grid';
+            container.innerHTML = folders.map((folder, index) => `
+                <div class="folder-card" onclick="openLocalFolderGallery(${index})">
+                    <button class="delete-btn" onclick="event.stopPropagation(); showDeleteModal('folder', '${folder.name}', ${index})" title="Delete folder">❌</button>
+                    <div class="folder-header">
+                        <div class="folder-name">${folder.name}</div>
+                        <div class="folder-count">${folder.imageCount} images</div>
+                    </div>
+                    <div class="images-grid">
+                        ${folder.images.slice(0, 6).map((img, imgIndex) => `
+                            <div class="image-item" id="localThumb_${index}_${imgIndex}">
+                                <img src="#" alt="${img.name}" loading="lazy" style="display:none;">
+                            </div>
+                        `).join('')}
+                        ${folder.images.length > 6 ? `<div class="image-item" style="background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 0.9em;">+${folder.images.length - 6} more</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            // 썸네일 로드
+            folders.forEach((folder, folderIndex) => {
+                folder.images.slice(0, 6).forEach((img, imgIndex) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imgElement = document.querySelector(`#localThumb_${folderIndex}_${imgIndex} img`);
+                        if (imgElement) {
+                            imgElement.src = e.target.result;
+                            imgElement.style.display = 'block';
+                        }
+                    };
+                    reader.readAsDataURL(img.file);
+                });
+            });
+            
+            // 전역 변수에 저장 (갤러리에서 사용)
+            window.localFoldersData = folders;
+        }
+        
+        function openLocalFolderGallery(folderIndex) {
+            if (!window.localFoldersData || !window.localFoldersData[folderIndex]) {
+                alert('Error loading folder data');
+                return;
+            }
+            
+            const folder = window.localFoldersData[folderIndex];
+            
+            // Hide folders view, show gallery view
+            document.querySelector('.external-folder-section').style.display = 'none';
+            document.getElementById('galleryView').style.display = 'block';
+            
+            // Set gallery title
+            document.getElementById('galleryTitle').textContent = `📁 ${folder.name} (${folder.imageCount} images)`;
+            
+            // 현재 갤러리 경로 저장 (로컬 폴더의 경우 폴더명만)
+            currentGalleryPath = folder.name;
+            
+            // 현재 갤러리 상태 저장
+            currentGallery = {
+                type: 'local',
+                folderIndex: folderIndex,
+                folderName: folder.name
+            };
+            
+            // Load gallery images
+            const galleryGrid = document.getElementById('galleryGrid');
+            galleryGrid.innerHTML = folder.images.map((img, index) => `
+                <div class="gallery-item" id="localGallery_${folderIndex}_${index}">
+                    <button class="delete-btn" onclick="event.stopPropagation(); showDeleteModal('local-image', '${img.name}', {folderIndex: ${folderIndex}, imageIndex: ${index}})" title="Delete image">❌</button>
+                    <img src="#" alt="${img.name}" loading="lazy" style="display:none;">
+                    <div class="gallery-item-info">
+                        <div class="gallery-item-name">${img.name}</div>
+                        <div class="gallery-item-size">${formatFileSize(img.size)}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 이미지 로드
+            folder.images.forEach((img, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgElement = document.querySelector(`#localGallery_${folderIndex}_${index} img`);
+                    if (imgElement) {
+                        imgElement.src = e.target.result;
+                        imgElement.style.display = 'block';
+                        imgElement.onclick = function() {
+                            openLocalImageModal(e.target.result, img.name, img.size);
+                        };
+                    }
+                };
+                reader.readAsDataURL(img.file);
+            });
+        }
+        
+        function openLocalImageModal(dataUrl, imageName, imageSize) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalInfo = document.getElementById('modalInfo');
+            
+            // 현재 갤러리 상태 설정
+            currentGallery.images = getCurrentGalleryImages();
+            currentGallery.currentIndex = getCurrentImageIndex(dataUrl);
+            currentGallery.type = 'local';
+            
+            modalImage.src = dataUrl;
+            modalImage.alt = imageName;
+            
+            // 이미지 로드 후 실제 크기 가져오기
+            modalImage.onload = function() {
+                const actualWidth = this.naturalWidth;
+                const actualHeight = this.naturalHeight;
+                modalInfo.innerHTML = `
+                    <strong>${imageName}</strong><br>
+                    Size: ${formatFileSize(imageSize)} | Dimensions: ${actualWidth} × ${actualHeight}px
+                `;
+            };
+            
+            modal.style.display = 'block';
+        }
+        
+        function displayExternalFolders(folders) {
+            const container = document.getElementById('externalFoldersGrid');
+            
+            if (!folders || folders.length === 0) {
+                container.innerHTML = '<div class="no-images">No folders found in this path</div>';
+                container.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'grid';
+            container.innerHTML = folders.map((folder, index) => `
+                <div class="folder-card" onclick="openExternalFolderGallery('${folder.path.replace(/\\/g, '\\\\')}', '${folder.name}')">
+                    <button class="delete-btn" onclick="event.stopPropagation(); showDeleteModal('external-folder', '${folder.name}', '${folder.path.replace(/\\/g, '\\\\')}')" title="Delete folder">❌</button>
+                    <div class="folder-header">
+                        <div class="folder-name">${folder.name}</div>
+                        <div class="folder-count">${folder.imageCount} images</div>
+                    </div>
+                    <div class="images-grid">
+                        ${folder.images.slice(0, 6).map(img => `
+                            <div class="image-item">
+                                <img src="/api/external-image?path=${encodeURIComponent(img.path)}" alt="${img.name}" loading="lazy" onerror="this.style.display='none'">
+                            </div>
+                        `).join('')}
+                        ${folder.images.length > 6 ? `<div class="image-item" style="background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 0.9em;">+${folder.images.length - 6} more</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function openExternalFolderGallery(folderPath, folderName) {
+            // Hide folders view, show gallery view
+            document.querySelector('.external-folder-section').style.display = 'none';
+            document.getElementById('galleryView').style.display = 'block';
+            
+            // Set gallery title
+            document.getElementById('galleryTitle').textContent = `📁 ${folderName}`;
+            
+            // 현재 갤러리 경로 저장
+            currentGalleryPath = folderPath;
+            
+            // 현재 갤러리 상태 저장
+            currentGallery = {
+                type: 'external',
+                folderPath: folderPath,
+                folderName: folderName
+            };
+            
+            // Load gallery images from external folder
+            loadExternalGallery(folderPath, folderName);
+        }
+        
+        async function loadExternalGallery(folderPath, folderName) {
+            try {
+                const response = await fetch('/api/browse-external', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ path: folderPath, includeImages: true })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success || !data.images) {
+                    document.getElementById('galleryGrid').innerHTML = '<div class="no-images">Error loading images</div>';
+                    return;
+                }
+                
+                const galleryGrid = document.getElementById('galleryGrid');
+                galleryGrid.innerHTML = data.images.map((img, index) => `
+                    <div class="gallery-item" onclick="openExternalImageModal('${img.path.replace(/\\/g, '\\\\')}', '${img.name}', ${img.size})">
+                        <button class="delete-btn" onclick="event.stopPropagation(); showDeleteModal('external-image', '${img.name}', '${img.path.replace(/\\/g, '\\\\')}')" title="Delete image">❌</button>
+                        <img src="/api/external-image?path=${encodeURIComponent(img.path)}" alt="${img.name}" loading="lazy">
+                        <div class="gallery-item-info">
+                            <div class="gallery-item-name">${img.name}</div>
+                            <div class="gallery-item-size">${formatFileSize(img.size)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('galleryGrid').innerHTML = '<div class="no-images">Error: ' + error.message + '</div>';
+            }
+        }
+        
+        function openExternalImageModal(imagePath, imageName, imageSize) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalInfo = document.getElementById('modalInfo');
+            
+            // 현재 갤러리 상태 설정
+            currentGallery.images = getCurrentGalleryImages();
+            const imageSrc = `/api/external-image?path=${encodeURIComponent(imagePath)}`;
+            currentGallery.currentIndex = getCurrentImageIndex(imageSrc);
+            currentGallery.type = 'external';
+            
+            modalImage.src = imageSrc;
+            modalImage.alt = imageName;
+            
+            // 이미지 로드 후 실제 크기 가져오기
+            modalImage.onload = function() {
+                const actualWidth = this.naturalWidth;
+                const actualHeight = this.naturalHeight;
+                modalInfo.innerHTML = `
+                    <strong>${imageName}</strong><br>
+                    Size: ${formatFileSize(imageSize)} | Dimensions: ${actualWidth} × ${actualHeight}px
+                `;
+            };
+            
+            modal.style.display = 'block';
+        }
+        
+        // 현재 갤러리 상태 저장
+        let currentGallery = {
+            type: null, // 'external' or 'local'
+            images: [],
+            currentIndex: 0,
+            folderPath: null
+        };
+
+        // 갤러리 이미지 데이터 가져오기
+        function getCurrentGalleryImages() {
+            const galleryItems = document.querySelectorAll('.gallery-item');
+            const images = [];
+            
+            galleryItems.forEach((item, index) => {
+                const img = item.querySelector('img');
+                const nameElement = item.querySelector('.gallery-item-name');
+                const sizeElement = item.querySelector('.gallery-item-size');
+                
+                if (img && nameElement) {
+                    images.push({
+                        src: img.src,
+                        name: nameElement.textContent,
+                        size: sizeElement ? sizeElement.textContent : '',
+                        index: index
+                    });
+                }
+            });
+            
+            return images;
+        }
+
+        // 현재 이미지 인덱스 찾기
+        function getCurrentImageIndex(targetSrc) {
+            const images = getCurrentGalleryImages();
+            return images.findIndex(img => img.src === targetSrc);
+        }
+
+        // 이전 이미지로 이동
+        function showPreviousImage() {
+            if (currentGallery.images.length === 0) return;
+            
+            currentGallery.currentIndex = (currentGallery.currentIndex - 1 + currentGallery.images.length) % currentGallery.images.length;
+            showImageAtIndex(currentGallery.currentIndex);
+        }
+
+        // 다음 이미지로 이동
+        function showNextImage() {
+            if (currentGallery.images.length === 0) return;
+            
+            currentGallery.currentIndex = (currentGallery.currentIndex + 1) % currentGallery.images.length;
+            showImageAtIndex(currentGallery.currentIndex);
+        }
+
+        // 특정 인덱스의 이미지 표시
+        function showImageAtIndex(index) {
+            if (index < 0 || index >= currentGallery.images.length) return;
+            
+            const image = currentGallery.images[index];
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            const modalInfo = document.getElementById('modalInfo');
+            
+            modalImg.src = image.src;
+            modalImg.alt = image.name;
+            
+            // 이미지 로드 후 실제 크기 가져오기
+            modalImg.onload = function() {
+                const actualWidth = this.naturalWidth;
+                const actualHeight = this.naturalHeight;
+                modalInfo.innerHTML = `
+                    <strong>${image.name}</strong><br>
+                    Size: ${image.size} | Dimensions: ${actualWidth} × ${actualHeight}px
+                `;
+            };
+            
+            currentGallery.currentIndex = index;
+        }
+
+        // 키보드 이벤트 처리
+        document.addEventListener('keydown', function(event) {
+            const modal = document.getElementById('imageModal');
+            if (modal.style.display === 'block') {
+                if (event.key === 'Escape') {
+                    closeModal();
+                } else if (event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    showPreviousImage();
+                } else if (event.key === 'ArrowRight') {
+                    event.preventDefault();
+                    showNextImage();
+                }
+            }
+        });
+
+        // 마우스 휠 이벤트 처리 (스크롤로 이미지 네비게이션)
+        document.addEventListener('wheel', function(event) {
+            const modal = document.getElementById('imageModal');
+            if (modal.style.display === 'block') {
+                event.preventDefault(); // 기본 스크롤 동작 방지
+                
+                // 스크롤 방향에 따라 이미지 변경
+                if (event.deltaY > 0) {
+                    // 아래로 스크롤 = 다음 이미지
+                    showNextImage();
+                } else if (event.deltaY < 0) {
+                    // 위로 스크롤 = 이전 이미지
+                    showPreviousImage();
+                }
+            }
+        }, { passive: false }); // passive: false로 설정하여 preventDefault() 사용 가능
+
+        // 삭제 관련 변수
+        let deleteTarget = null;
+
+        // 1px 복사 관련 변수
+        let currentGalleryPath = null;
+
+        // NAS 관련 변수
+        let nasSettings = {
+            defaultPath: '\\\\nas\\images',
+            backupPath: '\\\\nas\\backup'
+        };
+
+        // 프로그레스 모달 관련 변수
+        let progressStartTime = 0;
+        let progressInterval = null;
+        let deleteConfirmCallback = null;
+
+        // 삭제 확인 모달 표시
+        function showDeleteConfirmModal(title, message, warning, callback) {
+            const modal = document.getElementById('deleteConfirmModal');
+            document.getElementById('deleteConfirmTitle').textContent = title;
+            document.getElementById('deleteConfirmMessage').innerHTML = message;
+            document.getElementById('deleteConfirmWarning').textContent = warning;
+            
+            deleteConfirmCallback = callback;
+            modal.style.display = 'block';
+        }
+
+        // 삭제 확인 모달 닫기
+        function closeDeleteConfirmModal() {
+            document.getElementById('deleteConfirmModal').style.display = 'none';
+            deleteConfirmCallback = null;
+        }
+
+        // 삭제 확인
+        function confirmDeleteAction() {
+            closeDeleteConfirmModal();
+            if (deleteConfirmCallback) {
+                deleteConfirmCallback();
+            }
+        }
+
+        // 프로그레스 모달 열기
+        function showProgressModal(title) {
+            const modal = document.getElementById('progressModal');
+            const progressContent = document.getElementById('progressContent');
+            const completeContent = document.getElementById('progressCompleteContent');
+            
+            // 초기화
+            progressContent.style.display = 'block';
+            completeContent.style.display = 'none';
+            
+            document.getElementById('progressTitle').textContent = title || '⏳ 작업 진행 중...';
+            document.getElementById('progressBarFill').style.width = '0%';
+            document.getElementById('progressBarFill').textContent = '0%';
+            document.getElementById('progressStatus').textContent = '준비 중...';
+            document.getElementById('progressTime').textContent = '예상 남은 시간: 계산 중...';
+            document.getElementById('progressProcessed').textContent = '0';
+            document.getElementById('progressTotal').textContent = '0';
+            document.getElementById('progressErrors').textContent = '0';
+            
+            progressStartTime = Date.now();
+            modal.style.display = 'block';
+        }
+
+        // 프로그레스 업데이트
+        function updateProgress(processed, total, currentFile = '') {
+            const percentage = total > 0 ? Math.round((processed / total) * 100) : 0;
+            
+            document.getElementById('progressBarFill').style.width = percentage + '%';
+            document.getElementById('progressBarFill').textContent = percentage + '%';
+            document.getElementById('progressProcessed').textContent = processed;
+            document.getElementById('progressTotal').textContent = total;
+            
+            if (currentFile) {
+                document.getElementById('progressStatus').textContent = `처리 중: ${currentFile}`;
+            }
+            
+            // 남은 시간 계산
+            if (processed > 0) {
+                const elapsed = (Date.now() - progressStartTime) / 1000; // 초
+                const avgTimePerItem = elapsed / processed;
+                const remaining = (total - processed) * avgTimePerItem;
+                
+                const minutes = Math.floor(remaining / 60);
+                const seconds = Math.floor(remaining % 60);
+                
+                if (minutes > 0) {
+                    document.getElementById('progressTime').textContent = 
+                        `예상 남은 시간: ${minutes}분 ${seconds}초`;
+                } else {
+                    document.getElementById('progressTime').textContent = 
+                        `예상 남은 시간: ${seconds}초`;
+                }
+            }
+        }
+
+        // 프로그레스 완료 화면 표시
+        function showProgressComplete(result) {
+            const progressContent = document.getElementById('progressContent');
+            const completeContent = document.getElementById('progressCompleteContent');
+            
+            progressContent.style.display = 'none';
+            completeContent.style.display = 'block';
+            
+            // 처리된 이미지 개수
+            const processed = result.copiedCount || result.resizedCount || result.transferredCount || result.deletedCount || 0;
+            const errors = result.errors || [];
+            const errorCount = errors.length;
+            const successCount = processed - errorCount;
+            
+            // 결과 메시지
+            let message = '작업 완료!';
+            
+            // 각 작업 타입별 메시지
+            if (result.resizedCount !== undefined) {
+                message = `🎨 리사이징 완료! (${successCount}개 성공)`;
+            } else if (result.copiedCount !== undefined) {
+                message = `📋 복사 완료! (${successCount}개 성공)`;
+            } else if (result.transferredCount !== undefined) {
+                message = `📡 전송 완료! (${successCount}개 성공)`;
+            } else if (result.deletedCount !== undefined) {
+                message = `🗑️ 삭제 완료! (${successCount}개 성공)`;
+            }
+            
+            document.getElementById('completeMessage').textContent = message;
+            document.getElementById('completedCount').textContent = successCount;
+            document.getElementById('completedTotal').textContent = processed;
+            document.getElementById('completedErrors').textContent = errorCount;
+            
+            // 오류 목록 표시
+            const errorContainer = document.getElementById('errorListContainer');
+            if (errorCount > 0) {
+                const errorList = errors.slice(0, 10).map(err => `• ${err}`).join('<br>');
+                const moreText = errors.length > 10 ? `<br>... 외 ${errors.length - 10}개 더` : '';
+                errorContainer.innerHTML = `
+                    <div class="progress-error-list">
+                        <strong>⚠️ 오류 목록:</strong><br>
+                        ${errorList}${moreText}
+                    </div>
+                `;
+            } else {
+                errorContainer.innerHTML = `
+                    <div style="text-align: center; color: #28a745; font-size: 14px; margin-top: 15px;">
+                        ✨ 모든 작업이 성공적으로 완료되었습니다!
+                    </div>
+                `;
+            }
+        }
+
+        // 프로그레스 모달 닫기
+        function closeProgressModal() {
+            document.getElementById('progressModal').style.display = 'none';
+            
+            // 갤러리 새로고침
+            if (currentGalleryPath) {
+                setTimeout(() => {
+                    browseExternalGallery(currentGalleryPath);
+                }, 300);
+            }
+        }
+
+        // 삭제 모달 표시
+        function showDeleteModal(type, name, data) {
+            deleteTarget = { type, name, data };
+            const modal = document.getElementById('deleteModal');
+            const message = document.getElementById('deleteMessage');
+            
+            let messageText = '';
+            if (type === 'folder' || type === 'external-folder') {
+                messageText = `폴더 "${name}"을(를) 삭제하시겠습니까?`;
+            } else if (type === 'local-image' || type === 'external-image') {
+                messageText = `이미지 "${name}"을(를) 삭제하시겠습니까?`;
+            }
+            
+            message.textContent = messageText;
+            modal.style.display = 'block';
+        }
+
+        // 삭제 모달 닫기
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            deleteTarget = null;
+        }
+
+        // 삭제 확인
+        async function confirmDelete() {
+            if (!deleteTarget) return;
+
+            try {
+                let success = false;
+                
+                if (deleteTarget.type === 'folder') {
+                    // 로컬 폴더 삭제 (실제로는 폴더에서 제거만)
+                    success = await deleteLocalFolder(deleteTarget.data);
+                } else if (deleteTarget.type === 'external-folder') {
+                    // 외부 폴더 삭제
+                    success = await deleteExternalFolder(deleteTarget.data);
+                } else if (deleteTarget.type === 'local-image') {
+                    // 로컬 이미지 삭제
+                    success = await deleteLocalImage(deleteTarget.data);
+                } else if (deleteTarget.type === 'external-image') {
+                    // 외부 이미지 삭제
+                    success = await deleteExternalImage(deleteTarget.data);
+                }
+
+               if (success) {
+                   showResult(`✅ ${deleteTarget.name}이(가) 삭제되었습니다.`, 'success');
+                   closeDeleteModal();
+
+                   // 갤러리 새로고침
+                   setTimeout(() => {
+                       // 현재 갤러리 상태에 따라 새로고침
+                       if (currentGallery && currentGallery.type === 'external') {
+                           // 외부 갤러리인 경우
+                           const externalPath = document.getElementById('externalPath').value;
+                           if (externalPath && externalPath.trim() && !externalPath.startsWith('Local:')) {
+                               browseExternalFolder();
+                           }
+                       } else if (currentGallery && currentGallery.type === 'local') {
+                           // 로컬 갤러리인 경우
+                           const folderIndex = currentGallery.folderIndex;
+                           if (window.localFoldersData && window.localFoldersData[folderIndex]) {
+                               openLocalFolderGallery(folderIndex);
+                           }
+                       } else {
+                           // 일반적인 새로고침
+                           const externalPath = document.getElementById('externalPath').value;
+                           if (externalPath && externalPath.trim() && !externalPath.startsWith('Local:')) {
+                               browseExternalFolder();
+                           }
+                       }
+                   }, 300);
+               } else {
+                   showResult(`❌ 삭제에 실패했습니다.`, 'error');
+               }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showResult(`❌ 삭제 중 오류가 발생했습니다: ${error.message}`, 'error');
+            }
+        }
+
+        // 로컬 폴더 삭제
+        async function deleteLocalFolder(folderIndex) {
+            if (!window.localFoldersData || !window.localFoldersData[folderIndex]) {
+                return false;
+            }
+            
+            // 폴더 데이터에서 제거
+            window.localFoldersData.splice(folderIndex, 1);
+            
+            // UI 새로고침
+            displayLocalFolders(window.localFoldersData);
+            return true;
+        }
+
+        // 외부 폴더 삭제
+        async function deleteExternalFolder(folderPath) {
+            try {
+                const response = await fetch('/api/delete-folder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ path: folderPath })
+                });
+                
+                const data = await response.json();
+                return data.success;
+            } catch (error) {
+                console.error('Delete external folder error:', error);
+                return false;
+            }
+        }
+
+        // 로컬 이미지 삭제
+        async function deleteLocalImage(data) {
+            if (!window.localFoldersData || !window.localFoldersData[data.folderIndex]) {
+                return false;
+            }
+            
+            // 폴더에서 이미지 제거
+            window.localFoldersData[data.folderIndex].images.splice(data.imageIndex, 1);
+            window.localFoldersData[data.folderIndex].imageCount--;
+            
+            // UI 새로고침
+            displayLocalFolders(window.localFoldersData);
+            return true;
+        }
+
+        // 외부 이미지 삭제
+        async function deleteExternalImage(imagePath) {
+            try {
+                const response = await fetch('/api/delete-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ path: imagePath })
+                });
+                
+                const data = await response.json();
+                return data.success;
+            } catch (error) {
+                console.error('Delete external image error:', error);
+                return false;
+            }
+        }
+
+        // 1px 복사 모달 관련 함수들
+        function openCopyModal() {
+            const modal = document.getElementById('copyModal');
+            modal.style.display = 'block';
+            
+            // 프리셋 목록 로드
+            loadPresetsForCopy();
+        }
+
+        function closeCopyModal() {
+            document.getElementById('copyModal').style.display = 'none';
+        }
+
+        function toggleExcelFilterFields() {
+            const useExcelFilter = document.getElementById('useExcelFilter').checked;
+            const excelFields = document.getElementById('excelFilterFields');
+            
+            if (useExcelFilter) {
+                excelFields.style.display = 'block';
+            } else {
+                excelFields.style.display = 'none';
+            }
+        }
+
+        function openDeleteCopyModal() {
+            const modal = document.getElementById('deleteCopyModal');
+            modal.style.display = 'block';
+            
+            // 프리셋 목록 로드
+            loadPresetsForDelete();
+        }
+
+        function closeDeleteCopyModal() {
+            document.getElementById('deleteCopyModal').style.display = 'none';
+        }
+
+
+        async function loadPresetsForCopy() {
+            try {
+                const response = await fetch('/api/presets');
+                const data = await response.json();
+                
+                const select = document.getElementById('copyPreset');
+                select.innerHTML = '<option value="">프리셋을 선택하세요</option>';
+                
+                if (data.success && data.presets.length > 0) {
+                    data.presets.forEach(preset => {
+                        const option = document.createElement('option');
+                        option.value = preset.name;
+                        option.textContent = `${preset.name} (${preset.width}x${preset.height})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading presets for copy:', error);
+            }
+        }
+
+        async function loadPresetsForDelete() {
+            try {
+                const response = await fetch('/api/presets');
+                const data = await response.json();
+                
+                const select = document.getElementById('deletePreset');
+                select.innerHTML = '<option value="">삭제할 프리셋을 선택하세요</option>';
+                
+                if (data.success && data.presets.length > 0) {
+                    data.presets.forEach(preset => {
+                        const option = document.createElement('option');
+                        option.value = preset.name;
+                        option.textContent = `${preset.name} (${preset.width}x${preset.height})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading presets for delete:', error);
+            }
+        }
+
+
+        // 패턴 설정 관련 함수들
+        function openPatternSettings() {
+            const modal = document.getElementById('patternSettingsModal');
+            modal.style.display = 'block';
+            
+            // 현재 HTML 체크박스 상태에 따라 HTML 패턴 활성화/비활성화
+            toggleHtmlPatterns();
+        }
+
+        function closePatternSettings() {
+            document.getElementById('patternSettingsModal').style.display = 'none';
+        }
+
+        function toggleHtmlPatterns() {
+            const htmlIncluded = document.getElementById('copyHtmlImages').checked;
+            const htmlPatternItems = document.querySelectorAll('.pattern-checkbox-item.html-pattern');
+            const htmlPatternCheckboxes = document.querySelectorAll('.pattern-checkbox-item.html-pattern input[type="checkbox"]');
+            
+            htmlPatternItems.forEach(item => {
+                if (htmlIncluded) {
+                    item.classList.remove('disabled');
+                } else {
+                    item.classList.add('disabled');
+                }
+            });
+            
+            htmlPatternCheckboxes.forEach(checkbox => {
+                checkbox.disabled = !htmlIncluded;
+            });
+        }
+
+        function savePatternSettings() {
+            // 패턴 설정 저장 (localStorage에 저장)
+            const patterns = {
+                promotion_00: document.getElementById('pattern_promotion_00').checked,
+                promotion_01: document.getElementById('pattern_promotion_01').checked,
+                promotion_02: document.getElementById('pattern_promotion_02').checked,
+                fit_01: document.getElementById('pattern_fit_01').checked,
+                illust_01: document.getElementById('pattern_illust_01').checked,
+                desc_info_02: document.getElementById('pattern_desc_info_02').checked,
+                title_info_01: document.getElementById('pattern_title_info_01').checked,
+                size_info_04: document.getElementById('pattern_size_info_04').checked,
+                spec_info_03: document.getElementById('pattern_spec_info_03').checked
+            };
+            
+            localStorage.setItem('copyPatterns', JSON.stringify(patterns));
+            closePatternSettings();
+        }
+
+        function loadPatternSettings() {
+            const saved = localStorage.getItem('copyPatterns');
+            if (saved) {
+                const patterns = JSON.parse(saved);
+                Object.keys(patterns).forEach(key => {
+                    const checkbox = document.getElementById(`pattern_${key}`);
+                    if (checkbox) {
+                        checkbox.checked = patterns[key];
+                    }
+                });
+            }
+        }
+
+        function getEnabledPatterns() {
+            
+            const patterns = [];
+            const allPatternIds = [
+                'promotion_00', 'promotion_01', 'promotion_02',
+                'fit_01', 'illust_01',
+                'desc_info_02', 'title_info_01', 'size_info_04', 'spec_info_03'
+            ];
+            
+            allPatternIds.forEach(id => {
+                const checkbox = document.getElementById(`pattern_${id}`);
+                if (checkbox && checkbox.checked && !checkbox.disabled) {
+                    patterns.push(id);
+                }
+            });
+            
+            return patterns;
+        }
+
+        async function startCopy() {
+            const path = document.getElementById('copyPath').value.trim();
+            const season = document.getElementById('copySeason').value.trim();
+            const presetName = document.getElementById('copyPreset').value.trim();
+            const includeHtmlImages = document.getElementById('copyHtmlImages').checked;
+            const enabledPatterns = getEnabledPatterns();
+            const useExcelFilter = document.getElementById('useExcelFilter').checked;
+            
+            if (!path || !season || !presetName) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+            
+            // 프로그레스 모달 표시
+            showProgressModal('📁 1px Copy 진행 중...');
+            closeCopyModal();
+            
+            // 엑셀 필터링 사용 시
+            if (useExcelFilter) {
+                const excelFile = document.getElementById('copyExcelFile').files[0];
+                
+                if (!excelFile) {
+                    closeProgressModal();
+                    alert('엑셀 파일을 선택해주세요.');
+                    return;
+                }
+                
+                try {
+                    updateProgress(0, 1, '엑셀 파일 분석 중...');
+                    
+                    const formData = new FormData();
+                    formData.append('excelFile', excelFile);
+                    formData.append('sourcePath', path);
+                    formData.append('season', season);
+                    formData.append('presetName', presetName);
+                    formData.append('includeHtmlImages', includeHtmlImages);
+                    formData.append('enabledPatterns', JSON.stringify(enabledPatterns));
+                    
+                    const response = await fetch('/api/copy-images-excel', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showProgressComplete(data);
+                    } else {
+                        closeProgressModal();
+                        alert(`오류: ${data.message}`);
+                    }
+                } catch (error) {
+                    console.error('Error copying images with excel:', error);
+                    closeProgressModal();
+                    alert('엑셀 필터링 복사 중 오류가 발생했습니다.');
+                }
+                
+                return;
+            }
+            
+            // 기존 방식 (패턴 기반)
+            if (enabledPatterns.length === 0) {
+                closeProgressModal();
+                alert('복사할 패턴을 최소 1개 이상 선택해주세요.');
+                return;
+            }
+            
+            try {
+                updateProgress(0, 1, '이미지 검색 중...');
+                
+                const response = await fetch('/api/copy-images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sourcePath: path,
+                        season: season,
+                        presetName: presetName,
+                        includeHtmlImages: includeHtmlImages,
+                        enabledPatterns: enabledPatterns,
+                        targetPath: currentGalleryPath
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showProgressComplete(data);
+                } else {
+                    closeProgressModal();
+                    alert(`오류: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error copying images:', error);
+                closeProgressModal();
+                alert('이미지 복사 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function startDeleteCopy() {
+            const path = document.getElementById('deletePath').value.trim();
+            const season = document.getElementById('deleteSeason').value.trim();
+            const presetName = document.getElementById('deletePreset').value.trim();
+            
+            // 삭제할 이미지 타입 확인
+            const deletePatternImages = document.getElementById('deletePatternImages').checked;
+            const deleteSyncImages = document.getElementById('deleteSyncImages').checked;
+            // 원본 이미지는 절대 삭제하지 않음
+            
+            if (!path || !season || !presetName) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+            
+            if (!deletePatternImages && !deleteSyncImages) {
+                alert('삭제할 이미지 타입을 최소 1개 이상 선택해주세요.');
+                return;
+            }
+            
+            // 선택된 타입들 표시
+            const selectedTypes = [];
+            if (deletePatternImages) selectedTypes.push('1px Copy 패턴 이미지');
+            if (deleteSyncImages) selectedTypes.push('동기화 이미지');
+            
+            // 기본 confirm 사용
+            if (!confirm(`정말로 "${presetName}" 프리셋과 관련된 다음 이미지들을 삭제하시겠습니까?\n\n선택된 타입: ${selectedTypes.join(', ')}\n\n이 작업은 되돌릴 수 없습니다!`)) {
+                return;
+            }
+            
+            // 프로그레스 모달 표시
+            showProgressModal('🗑️ 동기화 서버 이미지 삭제 진행 중...');
+            closeDeleteCopyModal();
+            
+            try {
+                updateProgress(0, 1, '이미지 검색 중...');
+                
+                const response = await fetch('/api/delete-sync-images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sourcePath: path,
+                        season: season,
+                        presetName: presetName,
+                        deletePatternImages: deletePatternImages,
+                        deleteSyncImages: deleteSyncImages,
+                        deleteOriginalImages: false // 원본 이미지는 절대 삭제하지 않음
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showProgressComplete(data);
+                } else {
+                    closeProgressModal();
+                    alert(`오류: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error deleting sync images:', error);
+                closeProgressModal();
+                alert('이미지 삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+
+        // NAS 관련 함수들
+        function openNasModal() {
+            const modal = document.getElementById('nasModal');
+            modal.style.display = 'block';
+            
+            // NAS 기본 경로 설정 (마지막 사용한 경로 또는 기본값)
+            const lastNasPath = localStorage.getItem('lastNasPath');
+            if (lastNasPath) {
+                document.getElementById('nasBasePath').value = lastNasPath;
+            } else {
+                document.getElementById('nasBasePath').value = nasSettings.defaultPath;
+            }
+        }
+
+        function closeNasModal() {
+            document.getElementById('nasModal').style.display = 'none';
+        }
+
+        async function startNasTransfer() {
+            const basePath = document.getElementById('nasBasePath').value.trim();
+            const season = document.getElementById('nasSeason').value.trim();
+            
+            if (!basePath || !season) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+            
+            // 마지막 사용한 NAS 경로 저장
+            localStorage.setItem('lastNasPath', basePath);
+            
+            // 프로그레스 모달 표시
+            showProgressModal('📡 NAS 전송 진행 중...');
+            closeNasModal();
+            
+            try {
+                updateProgress(0, 1, '이미지 검색 중...');
+                
+                const response = await fetch('/api/nas-transfer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        basePath: basePath,
+                        season: season,
+                        sourcePath: currentGalleryPath
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showProgressComplete(data);
+                } else {
+                    closeProgressModal();
+                    alert(`오류: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error transferring to NAS:', error);
+                closeProgressModal();
+                alert('NAS 전송 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 이미지 동기화 관련 함수들
+        function openSyncModal() {
+            const modal = document.getElementById('syncModal');
+            modal.style.display = 'block';
+            
+            // 프리셋 목록 로드
+            loadPresetsForSync();
+            
+            // 마지막 사용 경로 불러오기
+            const lastSyncPath = localStorage.getItem('lastSyncPath');
+            const lastSyncSeason = localStorage.getItem('lastSyncSeason');
+            
+            if (lastSyncPath) {
+                document.getElementById('syncPath').value = lastSyncPath;
+            } else if (currentGalleryPath) {
+                // 마지막 경로가 없으면 현재 갤러리 경로 사용
+                document.getElementById('syncPath').value = currentGalleryPath;
+            }
+            
+            if (lastSyncSeason) {
+                document.getElementById('syncSeason').value = lastSyncSeason;
+            }
+        }
+
+        function closeSyncModal() {
+            document.getElementById('syncModal').style.display = 'none';
+        }
+
+        async function loadPresetsForSync() {
+            try {
+                const response = await fetch('/api/presets');
+                const data = await response.json();
+                
+                const select = document.getElementById('syncPreset');
+                select.innerHTML = '<option value="">프리셋을 선택하세요</option>';
+                
+                if (data.success && data.presets.length > 0) {
+                    data.presets.forEach(preset => {
+                        const option = document.createElement('option');
+                        option.value = preset.name;
+                        option.textContent = `${preset.name} (${preset.width}x${preset.height})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading presets for sync:', error);
+            }
+        }
+
+        function toggleSyncAllFields() {
+            const syncAll = document.getElementById('syncAllImages').checked;
+            const excelFields = document.getElementById('syncExcelFields');
+            const modeText = document.getElementById('syncModeText');
+            
+            if (syncAll) {
+                excelFields.style.display = 'none';
+                modeText.textContent = '1px 패턴 제외한 모든 이미지 (promotion, fit, illust 등 제외)';
+            } else {
+                excelFields.style.display = 'block';
+                modeText.textContent = '엑셀의 "imgs" 열 기준 (예: SF177E-55NXFJ → SF177E-55N_XFJ)';
+            }
+        }
+
+        async function startSync() {
+            const sourcePath = document.getElementById('syncPath').value.trim();
+            const season = document.getElementById('syncSeason').value.trim();
+            const presetName = document.getElementById('syncPreset').value.trim();
+            const syncAll = document.getElementById('syncAllImages').checked;
+            const excelFile = document.getElementById('syncExcelFile').files[0];
+            
+            if (!sourcePath || !season || !presetName) {
+                alert('경로, 시즌, 프리셋을 입력해주세요.');
+                return;
+            }
+            
+            // 전체 동기화가 아닌 경우 엑셀 파일 필수
+            if (!syncAll && !excelFile) {
+                alert('엑셀 파일을 선택하거나 전체 동기화를 체크해주세요.');
+                return;
+            }
+            
+            // 마지막 사용 경로 저장
+            localStorage.setItem('lastSyncPath', sourcePath);
+            localStorage.setItem('lastSyncSeason', season);
+            
+            // 프로그레스 모달 표시
+            showProgressModal('🔄 이미지 동기화 진행 중...');
+            closeSyncModal();
+            
+            try {
+                updateProgress(0, 1, syncAll ? '전체 이미지 검색 중...' : '엑셀 파일 분석 중...');
+                
+                const formData = new FormData();
+                if (excelFile) {
+                    formData.append('excelFile', excelFile);
+                }
+                formData.append('sourcePath', sourcePath);
+                formData.append('season', season);
+                formData.append('presetName', presetName);
+                formData.append('syncAll', syncAll);
+                
+                const response = await fetch('/api/sync-images', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showProgressComplete(data);
+                } else {
+                    closeProgressModal();
+                    alert(`오류: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error syncing images:', error);
+                closeProgressModal();
+                alert('이미지 동기화 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 샘플 엑셀 파일 다운로드
+        function downloadSampleExcel() {
+            // 다운로드 링크 생성
+            const link = document.createElement('a');
+            link.href = '/api/download-sample-excel';
+            link.download = 'img_sample.xlsx';
+            
+            // 클릭 이벤트 발생
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            console.log('📥 Sample excel file download started');
+        }
+
+        // Load presets and last path on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPresetsFromServer(); // 서버에서 프리셋 로드
+            loadLastExternalPath(); // 마지막 경로 로드 (자동 브라우징 포함)
+            loadPatternSettings(); // 패턴 설정 로드
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Size Presets - Image Resizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .preset-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .preset-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .preset-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .preset-form input {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .preset-form input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .preset-form input[type="text"] {
+            width: 200px;
+        }
+
+        .preset-form input[type="number"] {
+            width: 120px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .preset-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .preset-btn .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 5px;
+        }
+
+        .preset-btn .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .preset-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .preset-form input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="close-btn" onclick="window.close()">×</button>
+            <h1>⚙️ Size Presets</h1>
+            <p>Manage your image size presets</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Add New Preset -->
+            <div class="preset-section">
+                <h2>➕ Add New Preset</h2>
+                <div class="preset-form">
+                    <div class="form-group">
+                        <label for="presetName">Preset Name</label>
+                        <input type="text" id="presetName" placeholder="e.g., MUSINSA" maxlength="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="presetWidth">Width (px)</label>
+                        <input type="number" id="presetWidth" placeholder="1200" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="presetHeight">Height (px)</label>
+                        <input type="number" id="presetHeight" placeholder="1440" min="1">
+                    </div>
+                    <button class="btn" onclick="savePreset()">💾 Save Preset</button>
+                </div>
+            </div>
+
+            <!-- Saved Presets -->
+            <div class="preset-section">
+                <h2>📋 Saved Presets</h2>
+                <div class="preset-buttons" id="presetButtons">
+                    <div class="empty-state">No presets saved yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Preset management
+        let presets = [];
+        
+        // 서버에서 프리셋 로드
+        async function loadPresetsFromServer() {
+            try {
+                const response = await fetch('/api/presets');
+                const data = await response.json();
+                
+                if (data.success) {
+                    presets = data.presets;
+                    loadPresets();
+                } else {
+                    console.error('Error loading presets:', data.message);
+                    presets = [];
+                }
+            } catch (error) {
+                console.error('Error loading presets:', error);
+                presets = [];
+            }
+        }
+        
+        async function savePreset() {
+            const name = document.getElementById('presetName').value;
+            const width = document.getElementById('presetWidth').value;
+            const height = document.getElementById('presetHeight').value;
+            
+            if (!name || !width || !height) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/presets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name.trim(),
+                        width: parseInt(width),
+                        height: parseInt(height)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    presets = data.presets;
+                    
+                    // Clear form
+                    document.getElementById('presetName').value = '';
+                    document.getElementById('presetWidth').value = '';
+                    document.getElementById('presetHeight').value = '';
+                    
+                    loadPresets();
+                    alert('Preset saved successfully!');
+                    
+                    // 메인 창에 프리셋 저장 알림 및 새로고침
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'presetSaved'
+                        }, '*');
+                        
+                        // 메인 창 새로고침
+                        setTimeout(() => {
+                            window.opener.location.reload();
+                        }, 100);
+                    }
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error saving preset:', error);
+                alert('Error saving preset');
+            }
+        }
+        
+        function loadPresets() {
+            const container = document.getElementById('presetButtons');
+            
+            if (presets.length === 0) {
+                container.innerHTML = '<div class="empty-state">No presets saved yet</div>';
+                return;
+            }
+            
+            container.innerHTML = presets.map(preset => `
+                <div class="preset-btn" onclick="applyPreset(${preset.width}, ${preset.height}, '${preset.name}')">
+                    ${preset.name} (${preset.width}x${preset.height})
+                    <span class="delete-btn" onclick="deletePreset('${preset.name}', event)">×</span>
+                </div>
+            `).join('');
+        }
+        
+        function applyPreset(width, height, presetName) {
+            // Send data to parent window
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'applyPreset',
+                    width: width,
+                    height: height,
+                    presetName: presetName
+                }, '*');
+                window.close();
+            }
+        }
+        
+        async function deletePreset(name, event) {
+            event.stopPropagation();
+            if (confirm(`Delete preset "${name}"?`)) {
+                try {
+                    const response = await fetch(`/api/presets/${encodeURIComponent(name)}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        presets = data.presets;
+                        loadPresets();
+                        alert('Preset deleted successfully!');
+                        
+                        // 메인 창 새로고침
+                        if (window.opener) {
+                            setTimeout(() => {
+                                window.opener.location.reload();
+                            }, 100);
+                        }
+                    } else {
+                        alert(`Error: ${data.message}`);
+                    }
+                } catch (error) {
+                    console.error('Error deleting preset:', error);
+                    alert('Error deleting preset');
+                }
+            }
+        }
+        
+        // Load presets on page load
+        document.addEventListener('DOMContentLoaded', loadPresetsFromServer);
+    </script>
+</body>
+</html>

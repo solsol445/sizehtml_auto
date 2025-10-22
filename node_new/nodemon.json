@@ -1,0 +1,17 @@
+{
+  "watch": [
+    "server.js",
+    "resize.js",
+    "public/**/*"
+  ],
+  "ext": "js,html,css,json",
+  "ignore": [
+    "node_modules/**/*",
+    "img_in/**/*",
+    "img_out/**/*"
+  ],
+  "delay": 1000,
+  "env": {
+    "NODE_ENV": "development"
+  }
+}
